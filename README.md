@@ -53,7 +53,7 @@ cd airport
 
 2. 安装依赖
 ```bash
-npm install
+npm install --registry=https://registry.npmmirror.com
 ```
 
 3. 启动开发服务器
