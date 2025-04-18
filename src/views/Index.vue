@@ -12,7 +12,16 @@
     <!-- 轮播图 -->
     <el-carousel :interval="4000" type="card" height="400px" class="banner">
       <el-carousel-item v-for="(item, index) in banners" :key="index">
-        <img :src="item.image" :alt="item.title" class="banner-image">
+        <el-image 
+          :src="item.image" 
+          :alt="item.title" 
+          class="banner-image"
+          fit="cover"
+          lazy>
+          <div slot="placeholder" class="image-placeholder">
+            <i class="el-icon-picture-outline"></i>
+          </div>
+        </el-image>
         <div class="banner-content">
           <h2>{{ item.title }}</h2>
           <p>{{ item.description }}</p>
@@ -629,5 +638,19 @@ export default {
 
 .image-slot i {
   font-size: 30px;
+}
+
+.image-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: #f5f7fa;
+}
+
+.image-placeholder i {
+  font-size: 40px;
+  color: #909399;
 }
 </style> 

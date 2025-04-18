@@ -1,5 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
 import Index from '@/views/Index.vue'
 import Services from '@/views/Services.vue'
 import MealService from '@/views/services/MealService.vue'
@@ -19,11 +21,27 @@ import UserFavorites from '@/views/user/Favorites.vue'
 
 Vue.use(VueRouter)
 
+// 路由懒加载
+const IndexComponent = () => import(/* webpackChunkName: "home-page" */ '@/views/Index.vue')
+const ScheduleComponent = () => import(/* webpackChunkName: "schedule" */ '@/views/Schedule.vue')
+const ServicesComponent = () => import(/* webpackChunkName: "services" */ '@/views/Services.vue')
+const UserProfileComponent = () => import(/* webpackChunkName: "user" */ '@/views/UserProfile.vue')
+const FavoritesComponent = () => import(/* webpackChunkName: "user" */ '@/views/user/Favorites.vue')
+
+// 懒加载服务相关页面
+const MealServiceComponent = () => import(/* webpackChunkName: "service-meal" */ '@/views/services/MealService.vue')
+const InsuranceServiceComponent = () => import(/* webpackChunkName: "service-insurance" */ '@/views/services/InsuranceService.vue')
+const VipServiceComponent = () => import(/* webpackChunkName: "service-vip" */ '@/views/services/VipService.vue')
+
+// 添加旅游数据统计页面
+const TourismStats = () => import(/* webpackChunkName: "tourism-stats", webpackPrefetch: true */ '@/views/TourismStats.vue')
+
 const routes = [
   {
     path: '/',
     name: 'Index',
-    component: Index
+    component: IndexComponent,
+    meta: { title: '首页' }
   },
   {
     path: '/search',
@@ -33,7 +51,8 @@ const routes = [
   {
     path: '/schedule',
     name: 'Schedule',
-    component: Schedule
+    component: ScheduleComponent,
+    meta: { title: '航班时刻表' }
   },
   {
     path: '/price-calendar',
@@ -48,13 +67,14 @@ const routes = [
   {
     path: '/services',
     name: 'Services',
-    component: Services,
+    component: ServicesComponent,
     redirect: '/services/meal',
     children: [
       {
         path: 'meal',
         name: 'MealService',
-        component: MealService
+        component: MealServiceComponent,
+        meta: { title: '餐食服务' }
       },
       {
         path: 'baggage',
@@ -64,12 +84,14 @@ const routes = [
       {
         path: 'insurance',
         name: 'InsuranceService',
-        component: InsuranceService
+        component: InsuranceServiceComponent,
+        meta: { title: '保险服务' }
       },
       {
         path: 'vip',
         name: 'VipService',
-        component: VipService
+        component: VipServiceComponent,
+        meta: { title: '贵宾服务' }
       }
     ]
   },
@@ -86,8 +108,8 @@ const routes = [
   {
     path: '/user',
     name: 'UserProfile',
-    component: UserProfile,
-    meta: { requiresAuth: true }
+    component: UserProfileComponent,
+    meta: { requiresAuth: true, title: '用户中心' }
   },
   {
     path: '/orders',
@@ -103,9 +125,15 @@ const routes = [
   },
   {
     path: '/favorites',
-    name: 'UserFavorites',
-    component: UserFavorites,
-    meta: { requiresAuth: true }
+    name: 'Favorites',
+    component: FavoritesComponent,
+    meta: { requiresAuth: true, title: '我的收藏' }
+  },
+  {
+    path: '/tourism-stats',
+    name: 'TourismStats',
+    component: TourismStats,
+    meta: { title: '旅游数据统计' }
   }
 ]
 
@@ -115,13 +143,22 @@ const router = new VueRouter({
   routes
 })
 
-// 导航守卫
+// 进度条配置
+NProgress.configure({ 
+  showSpinner: false
+})
+
+// 路由守卫添加进度条和权限验证
 router.beforeEach((to, from, next) => {
-  // 检查该路由是否需要登录权限
+  NProgress.start()
+  
+  // 设置页面标题
+  document.title = to.meta.title ? `${to.meta.title} - 航空订票系统` : '航空订票系统'
+  
+  // 检查权限
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    // 如果需要登录权限，检查是否已登录
-    if (!router.app.$store?.getters?.isLoggedIn) {
-      // 未登录则跳转到登录页面
+    const isLoggedIn = router.app.$store?.getters.isLoggedIn
+    if (!isLoggedIn) {
       next({
         path: '/login',
         query: { redirect: to.fullPath }
@@ -132,6 +169,10 @@ router.beforeEach((to, from, next) => {
   } else {
     next()
   }
+})
+
+router.afterEach(() => {
+  NProgress.done()
 })
 
 export default router

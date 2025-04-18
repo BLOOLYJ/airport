@@ -23,6 +23,7 @@
         <el-menu-item index="/search">航班搜索</el-menu-item>
         <el-menu-item index="/schedule">航班时刻表</el-menu-item>
         <el-menu-item index="/price-calendar">价格日历</el-menu-item>
+        <el-menu-item index="/tourism-stats">旅游数据统计</el-menu-item>
       </el-submenu>
 
       <el-submenu index="services">
@@ -135,7 +136,6 @@ export default {
     return {
       activeIndex: '/',
       searchQuery: '',
-      notificationCount: 3,
       notificationDrawer: false,
       activeNotificationTab: 'system',
       userAvatar: '',
@@ -154,10 +154,17 @@ export default {
   },
   computed: {
     isLoggedIn() {
-      return this.$store.getters.isLoggedIn
+      return this.$store?.getters?.isLoggedIn || false
     },
     username() {
-      return this.$store.state.user?.username || '用户'
+      return this.$store?.state?.user?.username || '游客'
+    },
+    notificationCount() {
+      // 计算所有未读通知数量
+      const unreadSystem = this.systemNotifications.filter(n => !n.read).length
+      const unreadOrder = this.orderNotifications.filter(n => !n.read).length
+      const unreadPromotion = this.promotionNotifications.filter(n => !n.read).length
+      return unreadSystem + unreadOrder + unreadPromotion
     }
   },
   methods: {
@@ -192,6 +199,12 @@ export default {
           this.$message.success('已退出登录')
           break
       }
+    },
+    markAllAsRead() {
+      this.systemNotifications.forEach(n => n.read = true)
+      this.orderNotifications.forEach(n => n.read = true)
+      this.promotionNotifications.forEach(n => n.read = true)
+      this.$message.success('已将所有通知标记为已读')
     }
   }
 }
